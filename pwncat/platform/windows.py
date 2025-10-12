@@ -451,6 +451,10 @@ class Windows(Platform):
         ),
     ]
 
+    def context_changed(self):
+        """We don't need to do anything here"""
+        pass
+
     @classmethod
     def open_plugin(cls, manager: "pwncat.manager.Manager", name: str) -> BytesIO:
         """
