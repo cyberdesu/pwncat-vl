@@ -93,6 +93,17 @@ def bool_type(value: str) -> bool:
     raise ValueError(f"{value}: expected boolean value")
 
 
+def float_type(value: str) -> float:
+
+    if isinstance(value, (float, int)):
+        return float(value)
+
+    try:
+        return float(value)
+    except ValueError as exc:
+        raise ValueError(f"{value}: expected floating point value") from exc
+
+
 class Config:
     def __init__(self):
 
@@ -115,6 +126,8 @@ class Config:
                 "value": "~/.local/share/pwncat",
                 "type": local_dir_type,
             },
+            "win_bootstrap_timeout": {"value": 90.0, "type": float_type},
+            "win_prompt_timeout": {"value": 5.0, "type": float_type},
         }
 
         # Locals are set per-used-module
