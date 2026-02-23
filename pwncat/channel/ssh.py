@@ -103,23 +103,29 @@ class Ssh(Channel):
         :rtype: bytes
         """
 
+        if count is None:
+            count = 4096
+
         if self.peek_buffer:
-            data = self.peek_buffer[:count]
+            data = bytearray(self.peek_buffer[:count])
             self.peek_buffer = self.peek_buffer[count:]
 
             if len(data) >= count:
-                return data
+                return bytes(data)
         else:
-            data = b""
+            data = bytearray()
 
         try:
-            data += self.client.recv(count - len(data))
-            if data == b"":
-                raise ChannelClosed(self)
+            remaining = count - len(data)
+            if remaining > 0:
+                new_data = self.client.recv(remaining)
+                if new_data == b"":
+                    raise ChannelClosed(self)
+                data += new_data
         except socket.timeout:
             pass
 
-        return data
+        return bytes(data)
 
 
 def load_private_key(identity: Union[str, TextIO], passphrase: str = None):
