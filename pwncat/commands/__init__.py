@@ -50,7 +50,6 @@ from enum import Enum, auto
 from typing import Dict, List, Type, Callable, Iterable
 from functools import partial
 
-import rich.text
 from pygments import token
 from prompt_toolkit import ANSI, PromptSession
 from pygments.lexer import RegexLexer
@@ -190,6 +189,8 @@ class Parameter:
     :param kwargs: keyword arguments for ``add_argument`` or ``add_argument_group``
     """
 
+    __slots__ = ("complete", "token", "group", "args", "kwargs")
+
     def __init__(
         self,
         complete: Complete,
@@ -209,6 +210,8 @@ class Group:
     """
     This just wraps the parameters to the add_argument_group and add_mutually_exclusive_group
     """
+
+    __slots__ = ("mutex", "kwargs")
 
     def __init__(self, mutex: bool = False, **kwargs):
         self.mutex = mutex
@@ -490,6 +493,8 @@ class CommandParser:
 
     def _render_toolbar(self):
         """Render the formatted text for the bottom toolbar"""
+
+        import rich.text
 
         if self.manager.target is None:
             markup_result = "Active Session: [red]None[/red]"

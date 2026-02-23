@@ -71,7 +71,7 @@ class InvalidArgument(ModuleFailed):
     """This argument does not exist and ALLOW_KWARGS was false"""
 
 
-@dataclass
+@dataclass(slots=True)
 class Argument:
     """Describes an individual module argument. Arguments to modules are
     always required. If an argument has the default :class:`NoValue` then
