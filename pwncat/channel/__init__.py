@@ -205,6 +205,9 @@ class ChannelFile(RawIOBase):
             if n == 0 and not self.blocking:
                 return None
 
+        if self.eof_marker is None:
+            return None if n == 0 else n
+
         obj = bytes(b[:n])
 
         # Check for explicit EOF in this block
