@@ -151,12 +151,12 @@ class PopenLinux(pwncat.subprocess.Popen):
     def wait(self, timeout: float = None):
 
         if timeout is not None:
-            end_time = time.time() + timeout
+            end_time = time.monotonic() + timeout
         else:
             end_time = None
 
         while self.poll() is None:
-            if end_time is not None and time.time() >= end_time:
+            if end_time is not None and time.monotonic() >= end_time:
                 raise TimeoutExpired(self.args, timeout)
 
             time.sleep(0.1)
@@ -183,22 +183,32 @@ class PopenLinux(pwncat.subprocess.Popen):
             self.stdin.write(input)
 
         if timeout is not None:
-            end_time = time.time() + timeout
+            end_time = time.monotonic() + timeout
         else:
             end_time = None
 
-        data = empty
+        if empty == b"":
+            data = bytearray()
+        else:
+            data = empty
 
         while self.poll() is None:
             try:
-                if end_time is not None and time.time() >= end_time:
-                    raise TimeoutExpired(self.args, timeout, data)
+                if end_time is not None and time.monotonic() >= end_time:
+                    raise TimeoutExpired(
+                        self.args,
+                        timeout,
+                        bytes(data) if isinstance(data, bytearray) else data,
+                    )
                 if self.stdout is not None and data is None:
                     data = self.stdout.read(4096)
                 elif self.stdout is not None:
                     new_data = self.stdout.read(4096)
                     if new_data is not None:
-                        data += new_data
+                        if isinstance(data, bytearray):
+                            data += new_data
+                        else:
+                            data += new_data
                 else:
                     # A pipe wasn't requested. Don't buffer the data.
                     self.stdout_raw.read1(4096)
@@ -209,7 +219,13 @@ class PopenLinux(pwncat.subprocess.Popen):
         if self.stdout:
             new_data = self.stdout.read()
             if new_data is not None:
-                data += new_data
+                if isinstance(data, bytearray):
+                    data += new_data
+                else:
+                    data += new_data
+
+        if isinstance(data, bytearray):
+            data = bytes(data)
 
         return (data, empty)
 

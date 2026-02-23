@@ -446,16 +446,13 @@ class Channel(ABC):
         """
 
         # Grab any already buffered data
-        if self.peek_buffer:
-            data = self.peek_buffer
-        else:
-            data = b""
+        data = bytearray(self.peek_buffer) if self.peek_buffer else bytearray()
 
         if count is not None:
             count -= len(data)
 
         if timeout is not None:
-            end_time = time.time() + timeout
+            end_time = time.monotonic() + timeout
         else:
             end_time = 0
 
@@ -466,13 +463,13 @@ class Channel(ABC):
             data += new_data
             if len(data) or timeout is None:
                 break
-            if timeout is not None and time.time() > end_time:
+            if timeout is not None and time.monotonic() > end_time:
                 break
             time.sleep(0.1)
 
-        self.peek_buffer = data
+        self.peek_buffer = bytes(data)
 
-        return data
+        return self.peek_buffer
 
     def unrecv(self, data: bytes):
         """
