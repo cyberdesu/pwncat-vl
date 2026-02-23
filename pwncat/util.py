@@ -14,7 +14,6 @@ from io import TextIOWrapper
 from enum import Enum, Flag, auto
 from typing import List, Optional
 
-import netifaces
 from rich import markup
 from rich.console import Console
 
@@ -312,6 +311,8 @@ def get_ip_addr() -> str:
     """Retrieve the current IP address. This will return the first tun/tap
     interface if availabe. Otherwise, it will return the first "normal"
     interface with no preference for wired/wireless."""
+
+    import netifaces
 
     PROTO = netifaces.AF_INET
     ifaces = [
