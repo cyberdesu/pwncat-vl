@@ -261,7 +261,7 @@ class ChannelFile(RawIOBase):
 
         written = 0
         while written < len(data):
-            written += self.channel.send(data)
+            written += self.channel.send(data[written:])
 
         return written
 
