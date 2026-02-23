@@ -42,6 +42,27 @@ from enum import Enum, auto
 from typing import Dict, List, Tuple, Union, Callable, Optional, Generator
 
 import ZODB
+
+try:
+    from pkg_resources import iter_entry_points as _iter_entry_points
+except ModuleNotFoundError:  # Python 3.12+ may not ship pkg_resources
+    import types
+    from importlib import metadata as importlib_metadata
+
+    def _iter_entry_points(group=None, name=None):
+        eps = importlib_metadata.entry_points()
+        if hasattr(eps, "select"):
+            selected = eps if group is None else eps.select(group=group)
+        else:
+            selected = sum(eps.values(), []) if group is None else eps.get(group, [])
+        if name is not None:
+            selected = [ep for ep in selected if ep.name == name]
+        return iter(selected)
+
+    shim = types.ModuleType("pkg_resources")
+    shim.iter_entry_points = _iter_entry_points
+    sys.modules.setdefault("pkg_resources", shim)
+
 import zodburi
 import rich.progress
 import persistent.list
