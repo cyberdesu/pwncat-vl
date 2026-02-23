@@ -936,8 +936,9 @@ class Manager:
         conn.transaction_manager.commit()
         conn.close()
 
-        # Rebuild the command parser now that the database is available
-        self.parser = CommandParser(self)
+        # Only build a parser if one does not exist; it references manager.db at runtime
+        if self.parser is None:
+            self.parser = CommandParser(self)
 
     def create_db_session(self):
         """Create a new SQLAlchemy database session and return it"""
