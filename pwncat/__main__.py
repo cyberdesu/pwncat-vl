@@ -4,16 +4,7 @@ import logging
 import argparse
 import importlib.metadata
 
-from rich import box
-from rich.table import Table
-from rich.progress import Progress, SpinnerColumn
-
-import pwncat.manager
 from pwncat.util import console
-from pwncat.channel import ChannelError
-from pwncat.modules import ModuleFailed
-from pwncat.commands import connect
-from pwncat.platform import PlatformError
 
 
 def main():
@@ -103,6 +94,16 @@ def main():
     if args.version:
         print(importlib.metadata.version("pwncat-vl"))
         return
+
+    from rich import box
+    from rich.progress import Progress, SpinnerColumn
+    from rich.table import Table
+
+    import pwncat.manager
+    from pwncat.channel import ChannelError
+    from pwncat.commands import connect
+    from pwncat.modules import ModuleFailed
+    from pwncat.platform import PlatformError
 
     # Create the session manager
     with pwncat.manager.Manager(args.config) as manager:

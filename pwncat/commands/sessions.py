@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-from rich import box
-from rich.table import Table
-
 import pwncat
 from pwncat.util import console
 from pwncat.commands import Complete, Parameter, CommandDefinition
@@ -36,6 +33,9 @@ class Command(CommandDefinition):
     LOCAL = True
 
     def run(self, manager: "pwncat.manager.Manager", args):
+
+        from rich import box
+        from rich.table import Table
 
         if args.list or (not args.kill and args.session_id is None):
             table = Table(title="Active Sessions", box=box.MINIMAL_DOUBLE_HEAD)

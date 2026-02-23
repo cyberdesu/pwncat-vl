@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import textwrap
 
-import rich.box
-from rich.table import Table, Column
-
 import pwncat
 from pwncat.util import console
 from pwncat.commands import Complete, Parameter, CommandDefinition
@@ -27,6 +24,9 @@ class Command(CommandDefinition):
     LOCAL = True
 
     def run(self, manager: "pwncat.manager.Manager", args):
+        import rich.box
+        from rich.table import Table, Column
+
         if args.topic:
             for command in manager.parser.commands:
                 if command.PROG == args.topic:
