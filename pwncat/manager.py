@@ -64,13 +64,8 @@ except ModuleNotFoundError:  # Python 3.12+ may not ship pkg_resources
     sys.modules.setdefault("pkg_resources", shim)
 
 import zodburi
-import rich.progress
 import persistent.list
-from cryptography import x509
-from cryptography.x509.oid import NameOID
 from prompt_toolkit.shortcuts import confirm
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 
 import pwncat.db
 import pwncat.facts
@@ -424,6 +419,11 @@ class Listener(threading.Thread):
 
         if self.ssl_cert is None or self.ssl_key is None:
             with tempfile.NamedTemporaryFile("wb", delete=False) as filp:
+                from cryptography import x509
+                from cryptography.hazmat.primitives import hashes, serialization
+                from cryptography.hazmat.primitives.asymmetric import rsa
+                from cryptography.x509.oid import NameOID
+
                 self.manager.log(
                     f"generating self-signed certificate at {repr(filp.name)}"
                 )
@@ -738,6 +738,8 @@ class Session:
             # Ensure this bar is started if we are the selected
             # target.
             if not started:
+                import rich.progress
+
                 self._progress = rich.progress.Progress(
                     "{task.fields[platform]}",
                     "•",

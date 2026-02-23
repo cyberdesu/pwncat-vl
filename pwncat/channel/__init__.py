@@ -159,7 +159,7 @@ class ChannelFile(RawIOBase):
     def readall(self):
         """Read all data until EOF"""
 
-        data = b""
+        data = bytearray()
 
         while not self.eof:
             new_data = self.read(4096)
@@ -167,7 +167,7 @@ class ChannelFile(RawIOBase):
                 continue
             data += new_data
 
-        return data
+        return bytes(data)
 
     def readinto(self, b: Union[memoryview, bytearray]):
         """Read as much data as possible into the given bytearray or memory view.

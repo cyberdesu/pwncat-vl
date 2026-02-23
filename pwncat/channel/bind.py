@@ -11,8 +11,6 @@ the channel will listen on all interfaces (bound to ``0.0.0.0``).
 import errno
 import socket
 
-from rich.progress import Progress, BarColumn
-
 from pwncat.channel import ChannelError
 from pwncat.channel.socket import Socket
 
@@ -63,6 +61,8 @@ class Bind(Socket):
             raise ChannelError(self, error_message)
 
     def connect(self):
+
+        from rich.progress import Progress, BarColumn
 
         with Progress(
             f"bound to [blue]{self.host}[/blue]:[cyan]{self.port}[/cyan]",

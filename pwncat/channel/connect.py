@@ -9,8 +9,6 @@ The only required arguments are ``host`` and ``port``.
 
 import socket
 
-from rich.progress import Progress, BarColumn
-
 from pwncat.util import console
 from pwncat.channel import ChannelError
 from pwncat.channel.socket import Socket
@@ -35,6 +33,8 @@ class Connect(Socket):
                 port = int(port)
             except ValueError:
                 raise ChannelError(self, "invalid port")
+
+        from rich.progress import Progress, BarColumn
 
         with Progress(
             f"connecting to [blue]{host}[/blue]:[cyan]{port}[/cyan]",

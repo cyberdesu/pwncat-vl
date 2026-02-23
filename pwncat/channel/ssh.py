@@ -11,9 +11,6 @@ import os
 import socket
 from typing import Union, TextIO, Optional
 
-import paramiko
-from prompt_toolkit import prompt
-
 from pwncat.channel import Channel, ChannelError, ChannelClosed
 
 
@@ -30,6 +27,9 @@ class Ssh(Channel):
         **kwargs,
     ):
         super().__init__(host, port, user, password)
+
+        import paramiko
+        from prompt_toolkit import prompt
 
         if port is None:
             port = 22
@@ -124,6 +124,9 @@ class Ssh(Channel):
 
 def load_private_key(identity: Union[str, TextIO], passphrase: str = None):
     """Load a private key and return the appropriate PKey object"""
+
+    import paramiko
+    from prompt_toolkit import prompt
 
     if identity is None:
         return None

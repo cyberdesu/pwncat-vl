@@ -3,11 +3,6 @@ import ssl
 import datetime
 import tempfile
 
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-
 from pwncat.channel import ChannelError
 from pwncat.channel.bind import Bind
 
@@ -42,6 +37,11 @@ class SSLBind(Bind):
 
     def _generate_self_signed_cert(self):
         """Generate a self-signed certificate"""
+
+        from cryptography import x509
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.x509.oid import NameOID
 
         with tempfile.NamedTemporaryFile("wb", delete=False) as filp:
             key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
