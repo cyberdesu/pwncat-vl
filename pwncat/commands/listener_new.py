@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-from rich.prompt import Confirm
-
 import pwncat
 from pwncat.util import console
 from pwncat.manager import ListenerState
@@ -83,6 +81,8 @@ class Command(CommandDefinition):
         return True
 
     def run(self, manager: "pwncat.manager.Manager", args):
+
+        from rich.prompt import Confirm
 
         if args.drop_duplicate:
             established = self._drop_duplicate

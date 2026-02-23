@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import textwrap
 
-from rich import box
-from rich.table import Table
-
 import pwncat
 from pwncat.util import console
 from pwncat.commands import Complete, Parameter, CommandDefinition, get_module_choices
@@ -26,6 +23,9 @@ class Command(CommandDefinition):
     }
 
     def run(self, manager: "pwncat.manager.Manager", args):
+
+        from rich import box
+        from rich.table import Table
 
         if not args.module and manager.config.module is None:
             console.log("[red]error[/red]: no module specified")

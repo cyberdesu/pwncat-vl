@@ -2,15 +2,6 @@
 import os
 import time
 
-from rich.progress import (
-    Progress,
-    BarColumn,
-    TextColumn,
-    DownloadColumn,
-    TimeRemainingColumn,
-    TransferSpeedColumn,
-)
-
 import pwncat
 from pwncat.util import console, copyfileobj, human_readable_size, human_readable_delta
 from pwncat.commands import Complete, Parameter, CommandDefinition
@@ -32,6 +23,15 @@ class Command(CommandDefinition):
     }
 
     def run(self, manager: "pwncat.manager.Manager", args):
+
+        from rich.progress import (
+            Progress,
+            BarColumn,
+            TextColumn,
+            DownloadColumn,
+            TimeRemainingColumn,
+            TransferSpeedColumn,
+        )
 
         # Create a progress bar for the download
         progress = Progress(

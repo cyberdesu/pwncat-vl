@@ -2,9 +2,6 @@
 import re
 import sys
 
-from rich import box
-from rich.table import Table
-
 import pwncat
 from pwncat.util import console
 from pwncat.channel import ChannelError
@@ -89,6 +86,9 @@ class Command(CommandDefinition):
     )
 
     def run(self, manager: "pwncat.manager.Manager", args):
+
+        from rich import box
+        from rich.table import Table
 
         query_args = {}
         query_args["protocol"] = None

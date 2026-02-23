@@ -2,14 +2,6 @@
 import os
 import time
 
-from rich.progress import (
-    Progress,
-    BarColumn,
-    TextColumn,
-    SpinnerColumn,
-    TimeRemainingColumn,
-)
-
 import pwncat
 from pwncat import util
 from pwncat.util import console
@@ -140,6 +132,14 @@ class Command(CommandDefinition):
           the directory structure. A global progress bar is updated for every file,
           and a final summary is printed.
         """
+        from rich.progress import (
+            Progress,
+            BarColumn,
+            TextColumn,
+            SpinnerColumn,
+            TimeRemainingColumn,
+        )
+
         download_errors = []
 
         try:

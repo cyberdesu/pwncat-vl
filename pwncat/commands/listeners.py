@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-from rich import box
-from rich.table import Table
-from rich.prompt import Prompt
-
 import pwncat
 from pwncat.util import console
 from pwncat.manager import Listener, ListenerError, ListenerState
@@ -149,6 +145,10 @@ class Command(CommandDefinition):
             dump_var("ssl_key", repr(listener.ssl_key))
 
     def run(self, manager: "pwncat.manager.Manager", args):
+
+        from rich import box
+        from rich.table import Table
+        from rich.prompt import Prompt
 
         if (args.kill or args.init) and args.id is None:
             self.parser.error("missing argument: id")

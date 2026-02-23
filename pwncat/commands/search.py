@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import textwrap
 
-from rich import box
-from rich.table import Table, Column
-
 import pwncat
 from pwncat.util import console
 from pwncat.commands import Complete, Parameter, CommandDefinition
@@ -23,6 +20,9 @@ class Command(CommandDefinition):
     }
 
     def run(self, manager: "pwncat.manager.Manager", args):
+
+        from rich import box
+        from rich.table import Table, Column
 
         modules = list(manager.target.find_module(f"*{args.module}*"))
         min_width = max(
