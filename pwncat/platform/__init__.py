@@ -35,6 +35,7 @@ import fnmatch
 import logging
 import threading
 import logging.handlers
+import importlib
 from abc import ABC, abstractmethod
 from typing import List, Type, Union, BinaryIO, Optional, Generator
 from subprocess import CalledProcessError
@@ -46,6 +47,10 @@ import pwncat.channel
 import pwncat.subprocess
 
 PLATFORM_TYPES = {}
+PLATFORM_LAZY = {
+    "linux": "pwncat.platform.linux:Linux",
+    "windows": "pwncat.platform.windows:Windows",
+}
 """ A dictionary of platform names mapping to their class
 objects. This drives the ``pwncat.platform.create`` factory
 function. """
@@ -984,6 +989,19 @@ def register(platform: Type[Platform]):
     PLATFORM_TYPES[platform.name] = platform
 
 
+def _load_platform(name: str):
+    if name in PLATFORM_TYPES:
+        return
+
+    if name not in PLATFORM_LAZY:
+        return
+
+    module_path, class_name = PLATFORM_LAZY[name].split(":", 1)
+    module = importlib.import_module(module_path)
+    platform_class = getattr(module, class_name)
+    register(platform_class)
+
+
 def find(name: str) -> Type[Platform]:
     """
     Retrieve the platform class for the specified name
@@ -996,6 +1014,9 @@ def find(name: str) -> Type[Platform]:
     """
 
     global PLATFORM_TYPES
+
+    if name not in PLATFORM_TYPES:
+        _load_platform(name)
 
     return PLATFORM_TYPES[name]
 
@@ -1031,8 +1052,3 @@ def create(
     return find(platform)(channel, log)
 
 
-from pwncat.platform.linux import Linux  # noqa: E402
-from pwncat.platform.windows import Windows  # noqa: E402
-
-register(Linux)
-register(Windows)

@@ -15,6 +15,7 @@ to the constructor for the appropriate channel type.
 """
 
 import time
+import importlib
 from io import DEFAULT_BUFFER_SIZE, RawIOBase, BufferedReader, BufferedWriter
 from abc import ABC, abstractmethod
 from typing import Type, Union, Optional
@@ -22,6 +23,14 @@ from typing import Type, Union, Optional
 import pwncat
 
 CHANNEL_TYPES = {}
+CHANNEL_LAZY = {
+    "socket": "pwncat.channel.socket:Socket",
+    "bind": "pwncat.channel.bind:Bind",
+    "connect": "pwncat.channel.connect:Connect",
+    "ssh": "pwncat.channel.ssh:Ssh",
+    "ssl-bind": "pwncat.channel.ssl_bind:SSLBind",
+    "ssl-connect": "pwncat.channel.ssl_connect:SSLConnect",
+}
 
 
 class SafeBufferedWriter(BufferedWriter):
@@ -548,6 +557,19 @@ def register(name: str, channel_class: Type[Channel]):
     CHANNEL_TYPES[name] = channel_class
 
 
+def _load_channel(name: str):
+    if name in CHANNEL_TYPES:
+        return
+
+    if name not in CHANNEL_LAZY:
+        return
+
+    module_path, class_name = CHANNEL_LAZY[name].split(":", 1)
+    module = importlib.import_module(module_path)
+    channel_class = getattr(module, class_name)
+    register(name, channel_class)
+
+
 def find(name: str) -> Type[Channel]:
     """
     Retrieve the channel class for the specified name.
@@ -557,6 +579,9 @@ def find(name: str) -> Type[Channel]:
     :return: the channel class
     :rtype: Channel Class Object
     """
+
+    if name not in CHANNEL_TYPES:
+        _load_channel(name)
 
     return CHANNEL_TYPES[name]
 
@@ -616,16 +641,3 @@ def create(protocol: Optional[str] = None, **kwargs) -> Channel:
                 raise
 
 
-from pwncat.channel.ssh import Ssh  # noqa: E402
-from pwncat.channel.bind import Bind  # noqa: E402
-from pwncat.channel.socket import Socket  # noqa: E402
-from pwncat.channel.connect import Connect  # noqa: E402
-from pwncat.channel.ssl_bind import SSLBind  # noqa: E402
-from pwncat.channel.ssl_connect import SSLConnect  # noqa: E402
-
-register("socket", Socket)
-register("bind", Bind)
-register("connect", Connect)
-register("ssh", Ssh)
-register("ssl-bind", SSLBind)
-register("ssl-connect", SSLConnect)
