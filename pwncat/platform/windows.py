@@ -64,36 +64,37 @@ class ProtocolError(PlatformError):
         super().__init__(self.message)
 
 
-@dataclass
+@dataclass(slots=True)
 class stat_result:
     """Python `os` doesn't provide a way to sanely construct a stat_result
     so I created this."""
 
-    st_mode = 0
-    st_ino = 0
-    st_dev = 0
-    st_nlink = 0
-    st_uid = 0
-    st_gid = 0
-    st_size = 0
-    st_atime = 0
-    st_mtime = 0
-    st_ctime = 0
-    st_atime_ns = 0
-    st_mtime_ns = 0
-    st_ctime_ns = 0
-    st_blocks = 0
-    st_blksize = 0
-    st_rdev = 0
-    st_flags = 0
-    st_gen = 0
-    st_birthtime = 0
-    st_fstype = 0
-    st_rsize = 0
-    st_creator = 0
-    st_type = 0
-    st_file_attributes = 0
-    st_reparse_tag = 0
+    st_mode: int = 0
+    st_ino: Optional[int] = 0
+    st_dev: Optional[int] = 0
+    st_nlink: Optional[int] = 0
+    st_uid: int = 0
+    st_gid: int = 0
+    st_size: int = 0
+    st_atime: float = 0.0
+    st_mtime: float = 0.0
+    st_ctime: float = 0.0
+    st_atime_ns: float = 0.0
+    st_mtime_ns: float = 0.0
+    st_ctime_ns: float = 0.0
+    st_blocks: int = 0
+    st_blksize: int = 0
+    st_rdev: int = 0
+    st_flags: int = 0
+    st_gen: int = 0
+    st_birthtime: int = 0
+    st_fstype: int = 0
+    st_rsize: int = 0
+    st_creator: int = 0
+    st_type: int = 0
+    st_file_attributes: int = 0
+    st_reparse_tag: int = 0
+    st_reparse_point: int = 0
 
 
 class WindowsFile(RawIOBase):
@@ -127,7 +128,7 @@ class WindowsFile(RawIOBase):
     def readall(self):
         """Read until EOF"""
 
-        data = b""
+        data = bytearray()
 
         while not self.eof:
             new = self.read(4096)
@@ -135,7 +136,7 @@ class WindowsFile(RawIOBase):
                 continue
             data += new
 
-        return data
+        return bytes(data)
 
     def readinto(self, b: Union[memoryview, bytearray]):
 
@@ -329,12 +330,12 @@ class PopenWindows(pwncat.subprocess.Popen):
     def wait(self, timeout: float = None):
 
         if timeout is not None:
-            end_time = time.time() + timeout
+            end_time = time.monotonic() + timeout
         else:
             end_time = None
 
         while self.poll() is None:
-            if end_time is not None and time.time() >= end_time:
+            if end_time is not None and time.monotonic() >= end_time:
                 raise TimeoutExpired(self.args, timeout)
 
             time.sleep(0.1)
@@ -367,7 +368,7 @@ class PopenWindows(pwncat.subprocess.Popen):
             self.stdin.write(input)
 
         if timeout is not None:
-            end_time = time.time() + timeout
+            end_time = time.monotonic() + timeout
         else:
             end_time = None
 
@@ -379,7 +380,7 @@ class PopenWindows(pwncat.subprocess.Popen):
         )
 
         while self.poll() is None:
-            if end_time is not None and time.time() >= end_time:
+            if end_time is not None and time.monotonic() >= end_time:
                 raise TimeoutExpired(self.args, timeout, stdout)
             if self.stdout is not None:
                 new_stdout = self.stdout.read(4096)
@@ -414,7 +415,7 @@ class PopenWindows(pwncat.subprocess.Popen):
         return (stdout, stderr)
 
 
-@dataclass
+@dataclass(slots=True)
 class BuiltinPluginInfo:
     """Tells pwncat where to find a builtin plugin"""
 

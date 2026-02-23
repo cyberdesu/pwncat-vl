@@ -30,7 +30,7 @@ pwncat-vl = "pwncat.__main__:main"
 "Bug Tracker" = "https://github.com/Chocapikk/pwncat-vl/issues"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.11,<4.0"
 netifaces = "^0.11.0"
 packaging = ">=23.0"
 passlib = "^1.7.4"
