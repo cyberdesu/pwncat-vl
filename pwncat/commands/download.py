@@ -15,12 +15,12 @@ def download_file_base(remote_path, local_path):
     if successful, and error is a complete error message (or None if successful).
     """
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
-    start_time = time.time()
+    start_time = time.monotonic()
     try:
         with open(local_path, "wb") as lf, remote_path.open("rb") as rf:
             for buf in iter(lambda: rf.read(4096), b""):
                 lf.write(buf)
-        elapsed = time.time() - start_time
+        elapsed = time.monotonic() - start_time
         return elapsed, None
     except Exception as e:
         return None, f"{remote_path}: {e}"

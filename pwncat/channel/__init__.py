@@ -395,22 +395,25 @@ class Channel(ABC):
         if timeout is None:
             timeout = 30
 
-        data = b""
-        time_end = time.time() + timeout
+        data = bytearray()
+        time_end = time.monotonic() + timeout
+        needle_len = len(needle)
 
         # We read one byte at a time so we don't overshoot the goal
-        while not data.endswith(needle):
+        while True:
 
             # Check if we have timed out
-            if time.time() >= time_end:
-                raise ChannelTimeout(self, data)
+            if time.monotonic() >= time_end:
+                raise ChannelTimeout(self, bytes(data))
 
             next_byte = self.recv(1)
 
             if next_byte is not None:
                 data += next_byte
+                if needle_len and data[-needle_len:] == needle:
+                    break
 
-        return data
+        return bytes(data)
 
     def recvline(self, timeout: Optional[float] = None) -> bytes:
         """Receive data until a newline is received. The newline

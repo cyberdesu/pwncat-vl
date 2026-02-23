@@ -51,7 +51,7 @@ class Command(CommandDefinition):
 
         try:
             length = os.path.getsize(args.source)
-            started = time.time()
+            started = time.monotonic()
             with progress:
                 task_id = progress.add_task(
                     "upload", filename=args.destination, total=length, start=False
@@ -73,7 +73,7 @@ class Command(CommandDefinition):
                     progress.start_task(task_id)
                     progress.update(task_id, filename=args.destination)
 
-            elapsed = time.time() - started
+            elapsed = time.monotonic() - started
             console.log(
                 f"uploaded [cyan]{human_readable_size(length)}[/cyan] "
                 f"in [green]{human_readable_delta(elapsed)}[/green]"
